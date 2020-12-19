@@ -1,0 +1,141 @@
+openapi: "3.0.1"
+info:
+  title: "Activity Logger API"
+paths:
+  /activity:
+    post:
+      responses:
+        200:
+          description: "200 response for POST /activity"
+          content: {}
+      x-amazon-apigateway-integration:
+        credentials:
+          Fn::GetAtt: [MyRestApiRole, Arn]
+        uri: 
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem"
+        responses:
+          default:
+            statusCode: "200"
+        requestTemplates:
+          application/json:
+            Fn::Sub: "{\
+                \"TableName\": \"${DynamodbTable}\",\
+                \"Item\": {\
+                  \"activityId\": {\
+                    \"S\": \"$context.requestId\"\
+                  },\
+                  \"activityDate\": {\
+                    \"S\": \"$input.path('$.date')\"\
+                  },\
+                  \"activityType\": {\
+                    \"S\": \"$input.path('$.activity_type')\"\
+                  },\
+                  \"comments\": {\
+                    \"S\": \"$input.path('$.comments')\"\
+                  },\
+                  \"timestamp\": {\
+                    \"N\": \"$input.path('$.timestamp')\"\
+                  }\
+                }\
+              }"
+        passthroughBehavior: "when_no_templates"
+        httpMethod: "POST"
+        type: "aws"
+    delete:
+      responses:
+        200:
+          description: "200 response for DELETE /activity"
+          content: {}
+      x-amazon-apigateway-integration:
+        credentials:
+          Fn::GetAtt: [MyRestApiRole, Arn]
+        uri: 
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:dynamodb:action/DeleteItem"
+        responses:
+          default:
+            statusCode: "200"
+        requestTemplates:
+          application/json:
+            Fn::Sub: "{\
+              \"TableName\": \"${DynamodbTable}\",\
+              \"Key\": {\
+                \"activityId\": {\
+                  \"S\": $input.json('$.activity_id')\
+                },\
+                \"timestamp\": {\
+                  \"N\": \"$input.json('$.timestamp')\"\
+                }\
+              }\
+            }"
+        passthroughBehavior: "when_no_templates"
+        httpMethod: "POST"
+        type: "aws"
+
+  /activity/{date}:
+    get:
+      parameters:
+      - name: "date"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        200:
+          description: "200 response for GET activities by date"
+          content: {}
+      x-amazon-apigateway-integration:
+        credentials:
+          Fn::GetAtt: [MyRestApiRole, Arn]
+        uri: 
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query"
+        responses:
+          default:
+            statusCode: "200"
+            responseTemplates:
+              application/json: "#set($inputRoot = $input.path('$'))\
+                {\
+                  \"data\": [\
+                    #foreach($elem in $inputRoot.Items) {\
+                      \"activity_id\": \"$elem.activityId.S\",\
+                      \"comments\": \"$elem.comments.S\",\
+                      \"activity_type\": \"$elem.activityType.S\",\
+                      \"timestamp\": $elem.timestamp.N\
+                    }#if($foreach.hasNext),#end\
+                    #end\
+                    ]\
+                }"
+        requestTemplates:
+          application/json: 
+            Fn::Sub: "{\
+                \"TableName\": \"${DynamodbTable}\",\
+                \"IndexName\": \"gsiTimestamp\",\
+                \"ExpressionAttributeValues\": {\
+                  \":date\": {\
+                    \"S\": \"$input.params('date')\"\
+                  }\
+                },\
+                \"KeyConditionExpression\": \"activityDate = :date\",\
+                \"ProjectionExpression\": \"activityType, activityId, comments, #timestamp_attr\",\
+                \"ExpressionAttributeNames\": {\
+                  \"#timestamp_attr\": \"timestamp\"\
+                }
+              }"
+        passthroughBehavior: "when_no_templates"
+        httpMethod: "POST"
+        type: "aws"
+
+components: {}
+x-amazon-apigateway-policy:
+  Version: "2012-10-17"
+  Statement:
+  - Effect: "Allow"
+    Principal: "*"
+    Action: "execute-api:Invoke"
+    Resource: 
+      Fn::Sub: "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*"
+    Condition:
+      IpAddress:
+        aws:SourceIp: 
+          Ref: AllowedIp
+
+x-amazon-apigateway-importexport-version: "1.0"

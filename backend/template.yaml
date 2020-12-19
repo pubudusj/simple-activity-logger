@@ -1,0 +1,134 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  simple-activity-logger
+  Sample SAM Template for simple-activity-logger
+
+Globals:
+  Function:
+    Timeout: 3
+
+Parameters:
+  AllowedIp:
+    Type: String
+  Stage:
+    Type: String
+    Default: 'dev'
+
+Resources:
+  DynamodbTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: activityId
+          AttributeType: S
+        - AttributeName: activityDate
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: N
+      KeySchema:
+        - AttributeName: activityId
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: gsiTimestamp
+          KeySchema:
+            - AttributeName: activityDate
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection: 
+            ProjectionType: INCLUDE
+            NonKeyAttributes: 
+              - activityType
+              - comments
+          ProvisionedThroughput:
+            ReadCapacityUnits: 1
+            WriteCapacityUnits: 1
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+
+  MyRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      DefinitionBody:
+        'Fn::Transform':
+          Name: AWS::Include
+          Parameters:
+            Location: ./api.yaml
+      StageName: !Ref Stage
+      EndpointConfiguration: 'REGIONAL'
+    DependsOn: MyRestApiRole
+
+      # Cors:
+      #   AllowMethods: "'OPTIONS,POST,GET'"
+      #   AllowHeaders: "'Content-Type'"
+      #   AllowOrigin: "'*'"
+  MyRestApiRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "apigateway.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: ApiDynamodbPermissions
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              Action:
+                - dynamodb:PutItem
+                - dynamodb:DeleteItem
+                - dynamodb:GetItem
+                - dynamodb:Scan
+                - dynamodb:Query
+              Effect: Allow
+              Resource:
+                - !GetAtt DynamodbTable.Arn
+                - !Sub '${DynamodbTable.Arn}/index/*'
+
+  FrontendWebSiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: 404.html
+
+  FrontendWebSiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      PolicyDocument:
+        Id: FrontendWebSiteBucketPolicy
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: !Join 
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref FrontendWebSiteBucket
+                - /*
+      Bucket: !Ref FrontendWebSiteBucket
+
+Outputs:
+  DynamoDBTableName:
+    Description: "Dynamodb Table Name"
+    Value: !Ref DynamodbTable
+  ApiGatewayBaseUrl:
+    Description: "API Gateway base url"
+    Value: !Sub "https://${MyRestApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}"
+  FrontendWebSiteBucket:
+    Value: !Ref FrontendWebSiteBucket
+    Description: Website hosted bucket name
+  PublicWebSiteURL:
+    Value: !GetAtt FrontendWebSiteBucket.WebsiteURL
+    Description: URL for website hosted on S3
