@@ -103,7 +103,7 @@
                     :key="activity.id"
                   >
                     <td>{{ activity.activity_type }}</td>
-                    <td>{{ activity.timestamp | formatTimestamp }}</td>
+                    <td>{{ activity.time }}</td>
                     <td><v-btn color="error" x-small @click="deleteActivity(activity)">Delete</v-btn></td>
                   </tr>
                 </tbody>
@@ -131,7 +131,6 @@ export default {
     comment: "",
     todayActivities: [],
     todayDate: null,
-    debug: null,
   }),
   computed: {
     minutes() {
@@ -173,28 +172,20 @@ export default {
   created() {
     var today = new Date();
     this.minute = today.getMinutes() < 10 ? ('0' + today.getMinutes()) : today.getMinutes();
-    this.hour = today.getHours();
+    this.hour = today.getHours() < 10 ? ('0' + today.getHours()) : today.getHours();
     this.activityDate = today.getFullYear() + '-' + (today.getMonth()+1) + '-' + today.getDate();
     this.todayDate = today.getFullYear() + '-' + (today.getMonth()+1) + '-' + today.getDate();
     this.fetchTodayActivities(this.todayDate);
   },
   methods: {
     save () {
-        
         if (this.$refs.form.validate()) {
-          var time = this.activityDate + 'T' + this.hour + ':' + this.minute + ':00';
-          var timestamp = new Date(time).getTime()/1000;
           var payload = {
-            time: time,
-            activityDate: this.activityDate,
-            hour: this.hour,
-            minute: this.minute,
-            timestamp: timestamp,
+            time: this.hour + ':' + this.minute,
             date: this.activityDate,
             activity_type: this.activityType,
             comments: this.comment,
           }
-          this.debug = payload;
           var self = this
           api.saveActivity(payload).then(function(){
             self.fetchTodayActivities(self.todayDate)
@@ -211,7 +202,7 @@ export default {
       var self = this
       api.delete({
         'activity_id': activity.activity_id,
-        'timestamp': activity.timestamp
+        'time': activity.time
       }).then(function() {
         self.todayActivities = self.todayActivities.filter(act => act.activity_id != activity.activity_id);
       });

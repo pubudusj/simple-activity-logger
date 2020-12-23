@@ -47,8 +47,8 @@ paths:
                   \"comments\": {\
                     \"S\": \"$input.path('$.comments')\"\
                   },\
-                  \"timestamp\": {\
-                    \"N\": \"$input.path('$.timestamp')\"\
+                  \"time\": {\
+                    \"S\": \"$input.path('$.time')\"\
                   }\
                 }\
               }"
@@ -90,8 +90,8 @@ paths:
                 \"activityId\": {\
                   \"S\": $input.json('$.activity_id')\
                 },\
-                \"timestamp\": {\
-                  \"N\": \"$input.json('$.timestamp')\"\
+                \"time\": {\
+                  \"S\": $input.json('$.time')\
                 }\
               }\
             }"
@@ -141,7 +141,7 @@ paths:
                       \"activity_id\": \"$elem.activityId.S\",\
                       \"comments\": \"$elem.comments.S\",\
                       \"activity_type\": \"$elem.activityType.S\",\
-                      \"timestamp\": $elem.timestamp.N\
+                      \"time\": \"$elem.time.S\"\
                     }#if($foreach.hasNext),#end\
                     #end\
                     ]\
@@ -157,9 +157,9 @@ paths:
                   }\
                 },\
                 \"KeyConditionExpression\": \"activityDate = :date\",\
-                \"ProjectionExpression\": \"activityType, activityId, comments, #timestamp_attr\",\
+                \"ProjectionExpression\": \"activityType, activityId, comments, #time_attr\",\
                 \"ExpressionAttributeNames\": {\
-                  \"#timestamp_attr\": \"timestamp\"\
+                  \"#time_attr\": \"time\"\
                 }
               }"
         passthroughBehavior: "when_no_templates"

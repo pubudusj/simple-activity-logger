@@ -24,19 +24,19 @@ Resources:
           AttributeType: S
         - AttributeName: activityDate
           AttributeType: S
-        - AttributeName: timestamp
-          AttributeType: N
+        - AttributeName: time
+          AttributeType: S
       KeySchema:
         - AttributeName: activityId
           KeyType: HASH
-        - AttributeName: timestamp
+        - AttributeName: time
           KeyType: RANGE
       GlobalSecondaryIndexes:
         - IndexName: gsiTimestamp
           KeySchema:
             - AttributeName: activityDate
               KeyType: HASH
-            - AttributeName: timestamp
+            - AttributeName: time
               KeyType: RANGE
           Projection: 
             ProjectionType: INCLUDE
