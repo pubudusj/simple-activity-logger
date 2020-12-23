@@ -52,6 +52,7 @@ Resources:
 
   MyRestApi:
     Type: AWS::Serverless::Api
+    DependsOn: MyRestApiRole
     Properties:
       DefinitionBody:
         'Fn::Transform':
@@ -60,12 +61,11 @@ Resources:
             Location: ./api.yaml
       StageName: !Ref Stage
       EndpointConfiguration: 'REGIONAL'
-    DependsOn: MyRestApiRole
+      Cors:
+        AllowMethods: "'OPTIONS,POST,GET,DELETE'"
+        AllowHeaders: "'Content-Type'"
+        AllowOrigin: "'*'"
 
-      # Cors:
-      #   AllowMethods: "'OPTIONS,POST,GET'"
-      #   AllowHeaders: "'Content-Type'"
-      #   AllowOrigin: "'*'"
   MyRestApiRole:
     Type: AWS::IAM::Role
     Properties:
@@ -125,7 +125,7 @@ Outputs:
     Value: !Ref DynamodbTable
   ApiGatewayBaseUrl:
     Description: "API Gateway base url"
-    Value: !Sub "https://${MyRestApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}"
+    Value: !Sub "https://${MyRestApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/"
   FrontendWebSiteBucket:
     Value: !Ref FrontendWebSiteBucket
     Description: Website hosted bucket name

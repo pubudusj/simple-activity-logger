@@ -7,6 +7,16 @@ paths:
       responses:
         200:
           description: "200 response for POST /activity"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
           content: {}
       x-amazon-apigateway-integration:
         credentials:
@@ -16,6 +26,10 @@ paths:
         responses:
           default:
             statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,POST'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
         requestTemplates:
           application/json:
             Fn::Sub: "{\
@@ -45,6 +59,16 @@ paths:
       responses:
         200:
           description: "200 response for DELETE /activity"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
           content: {}
       x-amazon-apigateway-integration:
         credentials:
@@ -54,6 +78,10 @@ paths:
         responses:
           default:
             statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,DELETE'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
         requestTemplates:
           application/json:
             Fn::Sub: "{\
@@ -82,6 +110,16 @@ paths:
       responses:
         200:
           description: "200 response for GET activities by date"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
           content: {}
       x-amazon-apigateway-integration:
         credentials:
@@ -91,6 +129,10 @@ paths:
         responses:
           default:
             statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,GET'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates:
               application/json: "#set($inputRoot = $input.path('$'))\
                 {\
