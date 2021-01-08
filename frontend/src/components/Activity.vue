@@ -163,21 +163,24 @@ export default {
         var dateVal = new Date(timestamp * 1000);
 
         return dateVal.getFullYear() + '-' +
-          (dateVal.getMonth()+1 < 10 ? '0' + (dateVal.getMonth()+1) : dateVal.getMonth()+1) + '-' +
-          (dateVal.getDate() < 10 ? ('0' + dateVal.getDate()) : dateVal.getDate()) + ' ' +
-          (dateVal.getHours() < 10 ? ('0' + dateVal.getHours()) : dateVal.getHours()) + ':' +
-          (dateVal.getMinutes() < 10 ? ('0' + dateVal.getMinutes()) : dateVal.getMinutes());
+          this.formatWithPadding(dateVal.getMonth()+1) + '-' +
+          this.formatWithPadding(dateVal.getDate()) + ' ' +
+          this.formatWithPadding(dateVal.getHours()) + ':' +
+          this.formatWithPadding(dateVal.getMinutes());
     }
   },
   created() {
     var today = new Date();
-    this.minute = today.getMinutes() < 10 ? ('0' + today.getMinutes()) : today.getMinutes();
-    this.hour = today.getHours() < 10 ? ('0' + today.getHours()) : today.getHours();
-    this.activityDate = today.getFullYear() + '-' + (today.getMonth()+1) + '-' + today.getDate();
-    this.todayDate = today.getFullYear() + '-' + (today.getMonth()+1) + '-' + today.getDate();
+    this.minute = this.formatWithPadding(today.getMinutes());
+    this.hour = this.formatWithPadding(today.getHours());
+    this.activityDate = today.getFullYear() + '-' + this.formatWithPadding(today.getMonth()+1) + '-' + this.formatWithPadding(today.getDate());
+    this.todayDate = today.getFullYear() + '-' + this.formatWithPadding(today.getMonth()+1) + '-' + this.formatWithPadding(today.getDate());
     this.fetchTodayActivities(this.todayDate);
   },
   methods: {
+    formatWithPadding(value) {
+      return  value < 10 ? ('0' + value) : value;
+    },
     save () {
         if (this.$refs.form.validate()) {
           var payload = {
