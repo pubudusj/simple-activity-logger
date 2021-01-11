@@ -4,10 +4,11 @@ profile=$(cat .env | grep PROFILE= | cut -d '=' -f2)
 region=$(cat .env | grep REGION= | cut -d '=' -f2)
 allowedIp=$(cat .env | grep ALLOWED_IP= | cut -d '=' -f2)
 stage=$(cat .env | grep STAGE= | cut -d '=' -f2)
-sourceBucketName=activity-logger-source-bucket-$(date +%s)
 
 # Create deployment s3 bucket
 echo 'Creating deployment s3 bucket...'
+accountId=$(aws sts get-caller-identity --profile personal --query "Account" --output text)
+sourceBucketName=activity-logger-source-bucket-$accountId-$region
 aws s3 mb s3://${sourceBucketName} --profile ${profile}
 echo 'Done\n'
 
