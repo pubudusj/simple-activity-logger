@@ -2,7 +2,7 @@
 
 This project contains the souce code for both backend and frontend for a simple activity logger create using AWS Serverless.
 
-You may read about this more at this blog post: [Dev.to](https://dev.to)
+You may read about this more at this blog post: [Dev.to](https://dev.to/pubudusj/how-i-created-a-simple-activity-logger-with-aws-serverless-to-record-nuisance-activities-of-my-neighbor-3g2n)
 
 ## Prerequisites
 
